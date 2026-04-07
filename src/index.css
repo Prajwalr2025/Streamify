@@ -137,3 +137,9 @@ button:hover {
   overflow: hidden;
   text-overflow: ellipsis; /* Adds '...' if title is too long */
 }
+
+.movie-meta {
+  font-size: 0.85rem;
+  color: #aaaaaa;
+  margin-top: 0.5rem;
+}

@@ -1,16 +1,20 @@
+// src/components/MovieCard.jsx
 export default function MovieCard({ movie }) {
   return (
     <div className="movie-card">
       <div className="poster-container">
-        {/* We removed the hardcoded width so CSS can control it */}
         <img src={movie.poster} alt={movie.title} className="poster-image" />
-        
-        {/* This tag will be positioned over the image */}
-        <span className="type-tag">{movie.genre.toUpperCase()}</span>
+        <span className="type-tag">{movie.type.toUpperCase()}</span>
       </div>
       
       <div className="movie-info">
-        <h3>{movie.title}</h3>
+        {/* Added the Year next to the title */}
+        <h3>{movie.title} ({movie.year})</h3>
+        
+        {/* Added a new paragraph for Rating and Genre */}
+        <p className="movie-meta">
+          ⭐ {movie.rating} | {movie.genre.split(',')[0]} 
+        </p>
       </div>
     </div>
   );

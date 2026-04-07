@@ -9,8 +9,6 @@ export default function App() {
   const [movies, setMovies] = useState([]); 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
-  // 1. Create the new state for our dropdown filter
   const [filter, setFilter] = useState(""); 
 
   const fetchMovies = async (query, typeFilter) => {
@@ -18,7 +16,7 @@ export default function App() {
     setError(null);     
 
     try {
-      // 2. Dynamically build the URL. If typeFilter exists, add it to the string!
+      // API KEY LOCATION 1
       let apiUrl = `http://www.omdbapi.com/?apikey=293cd81&s=${query}`;
       if (typeFilter !== "") {
         apiUrl += `&type=${typeFilter}`;
@@ -27,13 +25,25 @@ export default function App() {
       const response = await axios.get(apiUrl);
 
       if (response.data.Response === "True") {
-        const formattedMovies = response.data.Search.map(movie => ({
-          id: movie.imdbID,
-          title: movie.Title,
-          poster: movie.Poster !== "N/A" ? movie.Poster : "https://via.placeholder.com/200x300?text=No+Image",
-          rating: "N/A", 
-          genre: movie.Type // This will now say "movie", "series", or "episode"
-        }));
+        const basicSearchData = response.data.Search;
+
+        const detailedMoviesPromises = basicSearchData.map(async (movie) => {
+          // API KEY LOCATION 2
+          const detailResponse = await axios.get(`http://www.omdbapi.com/?apikey=293cd81&i=${movie.imdbID}`);
+          const details = detailResponse.data;
+
+          return {
+            id: movie.imdbID,
+            title: movie.Title,
+            poster: movie.Poster !== "N/A" ? movie.Poster : "https://via.placeholder.com/200x300?text=No+Image",
+            type: movie.Type, 
+            year: movie.Year, 
+            rating: details.imdbRating !== "N/A" ? details.imdbRating : "N/R", 
+            genre: details.Genre !== "N/A" ? details.Genre : "Unknown" 
+          };
+        });
+
+        const formattedMovies = await Promise.all(detailedMoviesPromises);
         setMovies(formattedMovies);
       } else {
         setError(response.data.Error); 
@@ -46,20 +56,18 @@ export default function App() {
     }
   };
 
-  // 3. Update useEffect to pass both pieces of state
   useEffect(() => {
     fetchMovies(searchQuery, filter);
   }, []); 
 
   const handleSearch = (e) => {
     e.preventDefault(); 
-    fetchMovies(searchQuery, filter); // Pass both pieces of state when clicking search
+    fetchMovies(searchQuery, filter); 
   };
 
   return (
     <div className="app-container">
       <Header />
-      {/* 4. Pass the new filter state down to the SearchBar */}
       <SearchBar 
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
