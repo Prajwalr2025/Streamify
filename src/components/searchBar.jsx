@@ -1,22 +1,21 @@
-// We added 'handleSearch' as a new prop
-export default function SearchBar({ searchQuery, setSearchQuery, handleSearch }) {
+// We added 'filter' and 'setFilter' as new props
+export default function SearchBar({ searchQuery, setSearchQuery, handleSearch, filter, setFilter }) {
   return (
-    // We changed the <div> to a <form> and added the onSubmit event
     <form className="search-container" onSubmit={handleSearch}>
       <input 
         type="text" 
-        placeholder="Search for a movie..." 
+        placeholder="Search for a title..." 
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)} 
       />
       <button type="submit">Search</button>
       
-      <select>
-        <option value="">All Genres</option>
-        <option value="Action">Action</option>
-        <option value="Comedy">Comedy</option>
-        <option value="Drama">Drama</option>
-        <option value="Sci-Fi">Sci-Fi</option>
+      {/* Tie the select dropdown to our new filter state */}
+      <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <option value="">All Types</option>
+        <option value="movie">Movies</option>
+        <option value="series">TV Series</option>
+        <option value="episode">Episodes</option>
       </select>
     </form>
   );
