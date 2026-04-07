@@ -1,22 +1,33 @@
-// We added 'filter' and 'setFilter' as new props
-export default function SearchBar({ searchQuery, setSearchQuery, handleSearch, filter, setFilter }) {
+export default function SearchBar({ searchQuery, setSearchQuery, minRating, setMinRating, genreSearch, setGenreSearch, handleSearch }) {
   return (
     <form className="search-container" onSubmit={handleSearch}>
+      {/* Title Input */}
       <input 
         type="text" 
         placeholder="Search for a title..." 
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)} 
       />
-      <button type="submit">Search</button>
       
-      {/* Tie the select dropdown to our new filter state */}
-      <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-        <option value="">All Types</option>
-        <option value="movie">Movies</option>
-        <option value="series">TV Series</option>
-        <option value="episode">Episodes</option>
+      {/* Min Rating Dropdown */}
+      <select value={minRating} onChange={(e) => setMinRating(e.target.value)}>
+        <option value="Any">Any Rating</option>
+        <option value="5">5.0+</option>
+        <option value="6">6.0+</option>
+        <option value="7">7.0+</option>
+        <option value="8">8.0+</option>
+        <option value="9">9.0+</option>
       </select>
+
+      {/* Genre Text Input */}
+      <input 
+        type="text" 
+        placeholder="e.g. Sci-Fi" 
+        value={genreSearch}
+        onChange={(e) => setGenreSearch(e.target.value)} 
+      />
+
+      <button type="submit">Search</button>
     </form>
   );
 }

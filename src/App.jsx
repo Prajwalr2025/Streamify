@@ -9,26 +9,25 @@ export default function App() {
   const [movies, setMovies] = useState([]); 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState(""); 
+  
+  // New States for Client-Side Filtering
+  const [minRating, setMinRating] = useState("Any"); 
+  const [genreSearch, setGenreSearch] = useState(""); 
 
-  const fetchMovies = async (query, typeFilter) => {
+  const fetchMovies = async (query) => {
     setIsLoading(true); 
     setError(null);     
 
     try {
-      // API KEY LOCATION 1
-      let apiUrl = `http://www.omdbapi.com/?apikey=293cd81&s=${query}`;
-      if (typeFilter !== "") {
-        apiUrl += `&type=${typeFilter}`;
-      }
-
+      // 1. Basic Search
+      const apiUrl = `http://www.omdbapi.com/?apikey=293cd81&s=${query}`;
       const response = await axios.get(apiUrl);
 
       if (response.data.Response === "True") {
         const basicSearchData = response.data.Search;
 
+        // 2. Fetch Details (N+1)
         const detailedMoviesPromises = basicSearchData.map(async (movie) => {
-          // API KEY LOCATION 2
           const detailResponse = await axios.get(`http://www.omdbapi.com/?apikey=293cd81&i=${movie.imdbID}`);
           const details = detailResponse.data;
 
@@ -38,13 +37,32 @@ export default function App() {
             poster: movie.Poster !== "N/A" ? movie.Poster : "https://via.placeholder.com/200x300?text=No+Image",
             type: movie.Type, 
             year: movie.Year, 
-            rating: details.imdbRating !== "N/A" ? details.imdbRating : "N/R", 
+            rating: details.imdbRating !== "N/A" ? details.imdbRating : "0", // Fallback to 0
             genre: details.Genre !== "N/A" ? details.Genre : "Unknown" 
           };
         });
 
         const formattedMovies = await Promise.all(detailedMoviesPromises);
-        setMovies(formattedMovies);
+
+        // 3. THE TRICK: Client-Side Filtering!
+        const finalFilteredMovies = formattedMovies.filter((movie) => {
+          // Check Rating
+          const meetsRating = minRating === "Any" || parseFloat(movie.rating) >= parseFloat(minRating);
+          
+          // Check Genre (case-insensitive)
+          const meetsGenre = genreSearch === "" || movie.genre.toLowerCase().includes(genreSearch.toLowerCase());
+          
+          return meetsRating && meetsGenre;
+        });
+
+        // 4. Update the state with the filtered list
+        if (finalFilteredMovies.length === 0) {
+           setError("No movies matched your specific filters!");
+           setMovies([]);
+        } else {
+           setMovies(finalFilteredMovies);
+        }
+
       } else {
         setError(response.data.Error); 
         setMovies([]);
@@ -57,12 +75,12 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchMovies(searchQuery, filter);
+    fetchMovies(searchQuery);
   }, []); 
 
   const handleSearch = (e) => {
     e.preventDefault(); 
-    fetchMovies(searchQuery, filter); 
+    fetchMovies(searchQuery); 
   };
 
   return (
@@ -71,9 +89,11 @@ export default function App() {
       <SearchBar 
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
+        minRating={minRating}
+        setMinRating={setMinRating}
+        genreSearch={genreSearch}
+        setGenreSearch={setGenreSearch}
         handleSearch={handleSearch} 
-        filter={filter}
-        setFilter={setFilter}
       />
       
       {isLoading && <p style={{textAlign: "center", fontSize: "1.5rem"}}>⏳ Fetching...</p>}
